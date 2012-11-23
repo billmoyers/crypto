@@ -1,8 +1,9 @@
-module Crypto.PubKey.RSA where
+module Crypto.Asymmetric.RSA where
 import Numeric
 import Data.Binary
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
+import Math.NumberTheory.Primes.Testing
 
 -- Types
 data PublicKey = PublicKey Integer Integer
@@ -19,13 +20,9 @@ showPrivateKey (PrivateKey n d) = "PrivateKey(n=" ++ (show n) ++ ", d=" ++ (show
 
 instance Show PrivateKey where show = showPrivateKey
 
--- Primality test.
-prime :: Integer -> Bool
-prime a = True
-
 -- Generator for all primes in the given range.
 primesInRange :: Integer -> Integer -> [Integer]
-primesInRange a b = filter prime [a..b]
+primesInRange a b = filter isPrime [a..b]
 
 -- Using Extended Euclidean Algorithm, returning the multiplicative inverses
 moduloMultiplicativeInverse :: Integer -> Integer -> (Integer, Integer)
