@@ -14,10 +14,8 @@ maintainer:          bill.c.moyers@gmail.com
 build-type:          Simple
 cabal-version:       >=1.8
 
-
-
 executable crypto
-  main-is:             Crypto/Asymmetric/RSA.hs
+  main-is:             main.hs
   other-modules:       Crypto.Symmetric.FeistelCipher
   build-depends:       base ==4.5.*,bytestring,binary,arithmoi
   hs-source-dirs:      src

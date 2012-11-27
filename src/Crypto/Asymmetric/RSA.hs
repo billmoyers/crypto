@@ -1,9 +1,10 @@
 module Crypto.Asymmetric.RSA where
 import Numeric
-import Data.Binary
+import Math.NumberTheory.Primes.Testing
+import Crypto.Cipher
+
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import Math.NumberTheory.Primes.Testing
 
 -- Types
 data PublicKey = PublicKey Integer Integer
@@ -12,6 +13,7 @@ showPublicKey :: PublicKey -> String
 showPublicKey (PublicKey n e) = "PublicKey(n=" ++ (show n) ++ ", e=" ++ (show e) ++ ")"
 
 instance Show PublicKey where show = showPublicKey
+instance Encipher PublicKey where encipher = encrypt
 
 data PrivateKey = PrivateKey Integer Integer
 
@@ -19,6 +21,7 @@ showPrivateKey :: PrivateKey -> String
 showPrivateKey (PrivateKey n d) = "PrivateKey(n=" ++ (show n) ++ ", d=" ++ (show d) ++ ")"
 
 instance Show PrivateKey where show = showPrivateKey
+instance Decipher PrivateKey where decipher = decrypt 
 
 -- Generator for all primes in the given range.
 primesInRange :: Integer -> Integer -> [Integer]
@@ -63,15 +66,4 @@ prettyPrint = concat . map (flip showHex "") . B.unpack
 toStrict :: BL.ByteString -> B.ByteString
 toStrict = B.concat . BL.toChunks
 
-main = do
-	putStrLn $ show pub
-	putStrLn $ show priv
-	putStrLn $ show plain
-	putStrLn $ show cipher
-	putStrLn $ show decrypted
-	putStrLn $ show $ prettyPrint $ toStrict (encode decrypted)
-	where
-		(pub, priv) = generateKeyPair
-		plain = 65
-		cipher = encrypt pub plain
-		decrypted = decrypt priv cipher
+
