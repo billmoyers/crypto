@@ -1,12 +1,11 @@
 module Crypto.Asymmetric.RSA where
+
 import Numeric
 import Math.NumberTheory.Primes.Testing
-import Crypto.Cipher
 import System.Random
 import Data.Bits
 
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
+import Crypto.Cipher
 
 -- Types
 data PublicKey = PublicKey Integer Integer
@@ -77,15 +76,9 @@ modexp b e n = modexp' 1 b e
           then modexp' p (mod (x*x) n) (div e 2)
           else modexp' (mod (p*x) n) x (pred e)
 
-encrypt :: PublicKey -> Integer -> Integer
-encrypt (PublicKey n e) c = modexp c e n
+encrypt :: PublicKey -> Integer -> Maybe Integer
+encrypt (PublicKey n e) c = if ((c < 0) || (c >= n)) then Nothing else Just $ modexp c e n
 
-decrypt :: PrivateKey -> Integer -> Integer
-decrypt (PrivateKey n d) c = modexp c d n
-
-prettyPrint :: B.ByteString -> String
-prettyPrint = concat . map (flip showHex "") . B.unpack
-
-toStrict :: BL.ByteString -> B.ByteString
-toStrict = B.concat . BL.toChunks
+decrypt :: PrivateKey -> Integer -> Maybe Integer
+decrypt (PrivateKey n d) c = if ((c < 0) || (c >= n)) then Nothing else Just $ modexp c d n
 
