@@ -4,6 +4,9 @@ import Numeric
 import Math.NumberTheory.Primes.Testing
 import System.Random
 import Data.Bits
+import Data.Binary
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
 
 import Crypto.Cipher
 
@@ -14,7 +17,7 @@ showPublicKey :: PublicKey -> String
 showPublicKey (PublicKey n e) = "PublicKey(n=" ++ (show n) ++ ", e=" ++ (show e) ++ ")"
 
 instance Show PublicKey where show = showPublicKey
-instance Encipher PublicKey where encipher = encrypt
+instance Encipher PublicKey where encipher = encipher'
 
 data PrivateKey = PrivateKey Integer Integer
 
@@ -22,7 +25,7 @@ showPrivateKey :: PrivateKey -> String
 showPrivateKey (PrivateKey n d) = "PrivateKey(n=" ++ (show n) ++ ", d=" ++ (show d) ++ ")"
 
 instance Show PrivateKey where show = showPrivateKey
-instance Decipher PrivateKey where decipher = decrypt 
+instance Decipher PrivateKey where decipher = decipher' 
 
 -- Generator for all primes in the given range.
 primesInRange :: Integer -> Integer -> [Integer]
@@ -76,9 +79,18 @@ modexp b e n = modexp' 1 b e
           then modexp' p (mod (x*x) n) (div e 2)
           else modexp' (mod (p*x) n) x (pred e)
 
-encrypt :: PublicKey -> Integer -> Maybe Integer
-encrypt (PublicKey n e) c = if ((c < 0) || (c >= n)) then Nothing else Just $ modexp c e n
+toStrict :: BL.ByteString -> B.ByteString
+toStrict = B.concat . BL.toChunks
 
-decrypt :: PrivateKey -> Integer -> Maybe Integer
-decrypt (PrivateKey n d) c = if ((c < 0) || (c >= n)) then Nothing else Just $ modexp c d n
+strictEncode i = toStrict $ encode i
+
+encipher' :: PublicKey -> B.ByteString -> Maybe B.ByteString
+encipher' (PublicKey n e) b = if ((c < 0) || (c >= n)) then Nothing else Just $ strictEncode $ modexp c e n
+	where
+		c = decode $ BL.fromChunks [b]
+
+decipher' :: PrivateKey -> B.ByteString -> Maybe B.ByteString
+decipher' (PrivateKey n d) b = if ((c < 0) || (c >= n)) then Nothing else Just $ strictEncode $ modexp c d n
+	where
+		c = decode $ BL.fromChunks [b]
 

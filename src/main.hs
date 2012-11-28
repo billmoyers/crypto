@@ -15,9 +15,6 @@ modulus (PublicKey n e) = n
 prettyPrint :: B.ByteString -> String
 prettyPrint = concat . map (flip showHex "") . B.unpack
 
-toStrict :: BL.ByteString -> B.ByteString
-toStrict = B.concat . BL.toChunks
-
 main = do
 	putStrLn $ show pub
 	putStrLn $ show priv
@@ -25,9 +22,10 @@ main = do
 	putStrLn $ "ciphertext=" ++ (show cipher)
 	putStrLn $ "decrypted=" ++ (show decrypted)
 	where
-		(pub, priv) = generateKeyPair (mkStdGen 0) 1024
-		plain = 71
-		cipher = encrypt pub plain
+		stdGen = mkStdGen 0
+		(pub, priv) = generateKeyPair stdGen 1024
+		plain = toStrict $ encode (23852 :: Integer)
+		cipher = encipher pub plain
 		decrypted = case cipher of
 			Nothing -> Nothing
-			Just n -> decrypt priv n
+			Just n -> decipher priv n

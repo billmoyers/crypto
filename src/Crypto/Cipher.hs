@@ -1,8 +1,10 @@
 module Crypto.Cipher where
 
+import Data.ByteString
+import qualified Data.ByteString as B
+
 class Encipher c where
-	encipher :: c -> Integer -> Maybe Integer
+	encipher :: c -> B.ByteString -> Maybe B.ByteString
 
 class Decipher c where
-	decipher :: c -> Integer -> Maybe Integer
-
+	decipher :: c -> B.ByteString -> Maybe B.ByteString
