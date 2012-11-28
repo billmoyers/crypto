@@ -17,5 +17,7 @@ cabal-version:       >=1.8
 executable crypto
   main-is:             main.hs
   other-modules:       Crypto.Symmetric.FeistelCipher
-  build-depends:       base ==4.5.*,bytestring,binary,arithmoi
+  build-depends:       base ==4.5.*,bytestring,binary,arithmoi,random
   hs-source-dirs:      src
+  extensions:          RankNTypes, ScopedTypeVariables
+

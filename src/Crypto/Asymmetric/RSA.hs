@@ -2,6 +2,8 @@ module Crypto.Asymmetric.RSA where
 import Numeric
 import Math.NumberTheory.Primes.Testing
 import Crypto.Cipher
+import System.Random
+import Data.Bits
 
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
@@ -42,28 +44,48 @@ moduloMultiplicativeInverse a b =
 totient :: Integer -> Integer -> Integer
 totient p q = (p - 1) * (q - 1)
 
-generateKeyPair :: (PublicKey, PrivateKey)
-generateKeyPair = (PublicKey n e, PrivateKey n d)
+generatePrimes :: StdGen -> Int -> (Integer, Integer)
+generatePrimes stdGen bits = (p, q)
 	where
-		p = 61
-		q = 53
+		bitsp = (bits + 1) `quot` 2
+		bitsq = bits - bitsp
+		m = shiftL 1 (bits - 1)
+		candidates = map (\x -> ((x .|. 1) .|. m)) (randomRs (3, m) stdGen)
+		primes = filter isPrime candidates
+		p = primes !! 0
+		q = primes !! 1
+
+generateKeyPair :: StdGen -> Int -> (PublicKey, PrivateKey)
+generateKeyPair stdGen bits = 
+	let
+		(p, q) = generatePrimes stdGen bits
 		n = p * q
 		phi = totient p q
 		coprimes = (primesInRange 17 phi)
 		e = (take 1 coprimes) !! 0
 		mmi = fst $ moduloMultiplicativeInverse e phi
 		d = if mmi < 0 then phi + mmi else mmi
+	in (PublicKey n e, PrivateKey n d)
+
+modexp :: forall a. Integral a => a -> a -> a -> a
+modexp b e n = modexp' 1 b e
+    where
+    modexp' :: a -> a -> a -> a
+    modexp' p _ 0 = p
+    modexp' p x e =
+        if even e
+          then modexp' p (mod (x*x) n) (div e 2)
+          else modexp' (mod (p*x) n) x (pred e)
 
 encrypt :: PublicKey -> Integer -> Integer
-encrypt (PublicKey n e) c = (c ^ e) `mod` n
+encrypt (PublicKey n e) c = modexp c e n
 
 decrypt :: PrivateKey -> Integer -> Integer
-decrypt (PrivateKey n d) c = (c ^ d) `mod` n
+decrypt (PrivateKey n d) c = modexp c d n
 
 prettyPrint :: B.ByteString -> String
 prettyPrint = concat . map (flip showHex "") . B.unpack
 
 toStrict :: BL.ByteString -> B.ByteString
 toStrict = B.concat . BL.toChunks
-
 

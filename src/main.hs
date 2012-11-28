@@ -2,16 +2,19 @@ module Main where
 import Crypto.Cipher
 import Crypto.Asymmetric.RSA
 import Data.Binary
+import System.Random
+
+modulus :: PublicKey -> Integer
+modulus (PublicKey n e) = n
 
 main = do
 	putStrLn $ show pub
 	putStrLn $ show priv
-	putStrLn $ show plain
-	putStrLn $ show cipher
-	putStrLn $ show decrypted
-	putStrLn $ show $ prettyPrint $ toStrict (encode decrypted)
+	putStrLn $ "plaintext=" ++ (show plain)
+	putStrLn $ "ciphertext=" ++ (show cipher)
+	putStrLn $ "decrypted=" ++ (show decrypted)
 	where
-		(pub, priv) = generateKeyPair
-		plain = 65
+		(pub, priv) = generateKeyPair (mkStdGen 0) 1024
+		plain = 71
 		cipher = encrypt pub plain
 		decrypted = decrypt priv cipher
