@@ -7,14 +7,18 @@ import Data.Bits
 import Data.Binary
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Base64 as B64
 
 import Crypto.Cipher
+
+showBase64 :: Integer -> String
+showBase64 i = show $ B64.encode $ toStrict $ encode i
 
 -- Types
 data PublicKey = PublicKey Integer Integer
 
 showPublicKey :: PublicKey -> String
-showPublicKey (PublicKey n e) = "PublicKey(n=" ++ (show n) ++ ", e=" ++ (show e) ++ ")"
+showPublicKey (PublicKey n e) = "PublicKey(n=" ++ (showBase64 n) ++ ", e=" ++ (show e) ++ ")"
 
 instance Show PublicKey where show = showPublicKey
 instance Encipher PublicKey where encipher = encipher'
@@ -22,7 +26,7 @@ instance Encipher PublicKey where encipher = encipher'
 data PrivateKey = PrivateKey Integer Integer
 
 showPrivateKey :: PrivateKey -> String
-showPrivateKey (PrivateKey n d) = "PrivateKey(n=" ++ (show n) ++ ", d=" ++ (show d) ++ ")"
+showPrivateKey (PrivateKey n d) = "PrivateKey(n=" ++ (showBase64 n) ++ ", d=" ++ (showBase64 d) ++ ")"
 
 instance Show PrivateKey where show = showPrivateKey
 instance Decipher PrivateKey where decipher = decipher' 
